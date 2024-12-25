@@ -22,6 +22,14 @@ class Karyawan(Base):
     feedbacks = relationship('Feedback', back_populates='karyawan')
     jadwal_kerja = relationship('JadwalKerja', back_populates='karyawan')
 
+class JadwalKerja(Base):
+    __tablename__ = 'jadwal_kerja'
+
+    id = Column(Integer, primary_key=True, index=True)
+    nama_karyawan = Column(String, nullable=False)
+    hari = Column(String, nullable=False)
+    jam_masuk = Column(String, nullable=False)
+    jam_pulang = Column(String, nullable=False)
 
 class Pelanggan(Base):
     __tablename__ = 'pelanggan'
