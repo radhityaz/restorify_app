@@ -700,13 +700,14 @@ def manage_transaksi(session: Session):
                             session.commit()
                             st.success(f"Item {selected_menu.nama_menu} ({jumlah}) ditambahkan.")
 
-            # Tampilkan detail transaksi yang telah ditambahkan
-            if st.session_state.get('detail_transaksi'):
-                df_detail = pd.DataFrame(st.session_state.detail_transaksi)
-                st.table(df_detail)
+        # Tampilkan detail transaksi yang telah ditambahkan
+        if st.session_state.get('detail_transaksi'):
+            df_detail = pd.DataFrame(st.session_state.detail_transaksi)
+            st.table(df_detail)
 
-            # Tombol untuk menyelesaikan transaksi
-            if st.button("Selesaikan Transaksi"):
+        # Tombol untuk menyelesaikan transaksi
+        if st.button("Selesaikan Transaksi"):
+            if 'detail_transaksi' in st.session_state and st.session_state.detail_transaksi:
                 total_transaksi = sum(item["Harga"] for item in st.session_state.detail_transaksi)
                 current_transaksi = session.query(Transaksi).filter_by(transaksi_id=transaksi_id).first()
                 current_transaksi.total_transaksi = total_transaksi
@@ -734,6 +735,8 @@ def manage_transaksi(session: Session):
                         session.add(new_feedback)
                         session.commit()
                         st.success("Feedback berhasil disimpan. Terima kasih!")
+            else:
+                st.warning("Tidak ada detail transaksi yang ditambahkan.")
 
     elif action == "Lihat":
         st.subheader("Daftar Transaksi")
