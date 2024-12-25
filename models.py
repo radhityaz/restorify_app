@@ -1,11 +1,11 @@
+# models.py
+
 from sqlalchemy import (
     Column, String, Integer, Date, DECIMAL,
     ForeignKey, Text
 )
-from sqlalchemy.orm import declarative_base, relationship
-from db_config import engine
-
-Base = declarative_base()
+from sqlalchemy.orm import relationship
+from db_config import Base
 
 class Karyawan(Base):
     __tablename__ = 'karyawan'
@@ -22,14 +22,19 @@ class Karyawan(Base):
     feedbacks = relationship('Feedback', back_populates='karyawan')
     jadwal_kerja = relationship('JadwalKerja', back_populates='karyawan')
 
+
 class JadwalKerja(Base):
     __tablename__ = 'jadwal_kerja'
 
     id = Column(Integer, primary_key=True, index=True)
-    nama_karyawan = Column(String, nullable=False)
+    karyawan_id = Column(String(5), ForeignKey('karyawan.karyawan_id'), nullable=False)
     hari = Column(String, nullable=False)
     jam_masuk = Column(String, nullable=False)
     jam_pulang = Column(String, nullable=False)
+
+    # Relationships
+    karyawan = relationship('Karyawan', back_populates='jadwal_kerja')
+
 
 class Pelanggan(Base):
     __tablename__ = 'pelanggan'
@@ -177,6 +182,3 @@ class Feedback(Base):
     # Relationships
     pelanggan = relationship('Pelanggan', back_populates='feedbacks')
     karyawan = relationship('Karyawan', back_populates='feedbacks')
-
-# Membuat semua tabel di database (jika belum ada)
-Base.metadata.create_all(bind=engine)

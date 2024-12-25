@@ -1,11 +1,12 @@
+# app.py
+
 import streamlit as st
 from datetime import datetime
 from sqlalchemy.orm import Session
 import pandas as pd
 import locale
 
-# Import dari file internal
-from db_config import SessionLocal
+from db_config import engine, SessionLocal, Base
 from models import (
     Karyawan, Pelanggan, Supplier, BahanBaku,
     Menu, KomposisiMenu, Transaksi, DetailTransaksi,
@@ -55,7 +56,7 @@ def manage_karyawan(session: Session):
             employee_name = st.text_input("Nama Karyawan")
             position = st.selectbox("Posisi", ["Waiter", "Cashier", "Chef", "Manager", "Operational"])
             fingerprint_id = st.text_input("ID Sidik Jari (Opsional, mock)")
-            submit = st.form_submit_button("Simpan")
+            submit = st.form_submit_button("Simpan")  # Tombol submit
 
             if submit:
                 if not karyawan_id or not employee_name or not position:
@@ -113,7 +114,7 @@ def manage_karyawan(session: Session):
                     position = st.selectbox("Posisi", position_options, index=pos_idx)
                     fingerprint_val = selected_karyawan.fingerprint_id if selected_karyawan.fingerprint_id else ""
                     fingerprint_id = st.text_input("ID Sidik Jari (Opsional)", value=fingerprint_val)
-                    submit = st.form_submit_button("Perbarui")
+                    submit = st.form_submit_button("Perbarui")  # Tombol submit
 
                     if submit:
                         if not employee_name or not position:
@@ -153,7 +154,7 @@ def manage_pelanggan(session: Session):
             pelanggan_id = st.text_input("ID Pelanggan")
             cus_name = st.text_input("Nama Pelanggan")
             contact_info = st.text_input("Kontak")
-            submit = st.form_submit_button("Simpan")
+            submit = st.form_submit_button("Simpan")  # Tombol submit
 
             if submit:
                 if not pelanggan_id or not cus_name or not contact_info:
@@ -203,7 +204,7 @@ def manage_pelanggan(session: Session):
                 with st.form("form_perbarui_pelanggan"):
                     cus_name = st.text_input("Nama Pelanggan", value=selected_pelanggan.cus_name)
                     contact_info = st.text_input("Kontak", value=selected_pelanggan.contact_info)
-                    submit = st.form_submit_button("Perbarui")
+                    submit = st.form_submit_button("Perbarui")  # Tombol submit
 
                     if submit:
                         if not cus_name or not contact_info:
@@ -242,7 +243,7 @@ def manage_supplier(session: Session):
             supplier_id = st.text_input("ID Supplier")
             supplier_name = st.text_input("Nama Supplier")
             address = st.text_input("Alamat")
-            submit = st.form_submit_button("Simpan")
+            submit = st.form_submit_button("Simpan")  # Tombol submit
 
             if submit:
                 if not supplier_id or not supplier_name or not address:
@@ -292,7 +293,7 @@ def manage_supplier(session: Session):
                 with st.form("form_perbarui_supplier"):
                     supplier_name = st.text_input("Nama Supplier", value=selected_supplier.supplier_name)
                     address = st.text_input("Alamat", value=selected_supplier.address)
-                    submit = st.form_submit_button("Perbarui")
+                    submit = st.form_submit_button("Perbarui")  # Tombol submit
 
                     if submit:
                         if not supplier_name or not address:
@@ -336,9 +337,13 @@ def manage_bahan_baku(session: Session):
 
             supplier_list = session.query(Supplier).all()
             supplier_ids = [s.supplier_id for s in supplier_list]
-            supplier_id = st.selectbox("Supplier ID", supplier_ids) if supplier_ids else None
+            if supplier_ids:
+                supplier_id = st.selectbox("Supplier ID", supplier_ids)
+            else:
+                st.warning("Belum ada supplier. Tambahkan supplier terlebih dahulu.")
+                supplier_id = None
 
-            submit = st.form_submit_button("Simpan")
+            submit = st.form_submit_button("Simpan")  # Tombol submit
             if submit:
                 if not bahan_id or not nama_bahan or not satuan or not supplier_id:
                     st.error("Semua field wajib diisi.")
@@ -412,9 +417,13 @@ def manage_bahan_baku(session: Session):
                         idx = supplier_ids.index(selected_bahan.supplier_id)
                     else:
                         idx = 0
-                    supplier_id = st.selectbox("Supplier ID", supplier_ids, index=idx) if supplier_ids else None
+                    if supplier_ids:
+                        supplier_id = st.selectbox("Supplier ID", supplier_ids, index=idx)
+                    else:
+                        st.warning("Belum ada supplier. Tambahkan supplier terlebih dahulu.")
+                        supplier_id = None
 
-                    submit = st.form_submit_button("Perbarui")
+                    submit = st.form_submit_button("Perbarui")  # Tombol submit
                     if submit:
                         if not nama_bahan or not satuan or not supplier_id:
                             st.error("Semua field wajib diisi.")
@@ -455,7 +464,7 @@ def manage_menu(session: Session):
             menu_id = st.text_input("ID Menu")
             nama_menu = st.text_input("Nama Menu")
             harga = st.number_input("Harga", min_value=0.0, value=0.0)
-            submit = st.form_submit_button("Simpan")
+            submit = st.form_submit_button("Simpan")  # Tombol submit
 
             if submit:
                 if not menu_id or not nama_menu:
@@ -506,7 +515,7 @@ def manage_menu(session: Session):
                 with st.form("form_perbarui_menu"):
                     nama_menu = st.text_input("Nama Menu", value=selected_menu.nama_menu)
                     harga = st.number_input("Harga", min_value=0.0, value=float(selected_menu.harga))
-                    submit = st.form_submit_button("Perbarui")
+                    submit = st.form_submit_button("Perbarui")  # Tombol submit
 
                     if submit:
                         if not nama_menu:
@@ -559,13 +568,15 @@ def manage_menu(session: Session):
                     st.info("Belum ada komposisi untuk menu ini.")
 
                 st.write("---")
-                st.write("Tambah Bahan Baku ke Komposisi")
+                st.write("### Tambah Bahan Baku ke Komposisi")
                 bahan_baku_list = session.query(BahanBaku).all()
                 bahan_ids = [b.bahan_id for b in bahan_baku_list]
                 if bahan_ids:
                     selected_bahan_id = st.selectbox("Pilih ID Bahan Baku", bahan_ids)
                     jumlah_bahan = st.number_input("Jumlah Bahan", min_value=1, value=1)
-                    if st.button("Tambah ke Komposisi"):
+                    tambah_item = st.button("Tambah ke Komposisi")
+
+                    if tambah_item:
                         existing_komposisi = session.query(KomposisiMenu).filter_by(
                             menu_id=selected_menu_id,
                             bahan_id=selected_bahan_id
@@ -610,7 +621,7 @@ def manage_transaksi(session: Session):
             pelanggan_id = st.selectbox("Pelanggan ID", pelanggan_ids) if pelanggan_ids else None
             karyawan_id = st.selectbox("Karyawan ID", karyawan_ids) if karyawan_ids else None
 
-            submit = st.form_submit_button("Lanjutkan")
+            submit = st.form_submit_button("Lanjutkan")  # Tombol submit
 
         if submit and pelanggan_id and karyawan_id:
             existing_transaksi = session.query(Transaksi).filter_by(transaksi_id=transaksi_id).first()
@@ -690,7 +701,7 @@ def manage_transaksi(session: Session):
                             st.success(f"Item {selected_menu.nama_menu} ({jumlah}) ditambahkan.")
 
             # Tampilkan detail transaksi yang telah ditambahkan
-            if st.session_state.detail_transaksi:
+            if st.session_state.get('detail_transaksi'):
                 df_detail = pd.DataFrame(st.session_state.detail_transaksi)
                 st.table(df_detail)
 
@@ -773,7 +784,7 @@ def manage_feedback(session: Session):
             rating = st.slider("Rating (1-5)", min_value=1, max_value=5, value=5)
             komentar = st.text_area("Komentar (Opsional)", height=100)
 
-            submit = st.form_submit_button("Simpan Feedback")
+            submit = st.form_submit_button("Simpan Feedback")  # Tombol submit
             if submit:
                 if not pelanggan_id or not karyawan_id:
                     st.error("Pelanggan dan Karyawan wajib dipilih.")
@@ -842,7 +853,7 @@ def manage_feedback(session: Session):
                     komentar_val = selected_feedback.komentar if selected_feedback.komentar else ""
                     komentar = st.text_area("Komentar (Opsional)", value=komentar_val, height=100)
 
-                    submit = st.form_submit_button("Perbarui Feedback")
+                    submit = st.form_submit_button("Perbarui Feedback")  # Tombol submit
                     if submit:
                         if not pelanggan_id or not karyawan_id:
                             st.error("Pelanggan dan Karyawan wajib dipilih.")
@@ -961,6 +972,9 @@ def main():
 
     selected_menu = st.sidebar.selectbox("Navigasi", menu_options)
     session = get_session()
+
+    # Membuat semua tabel di database (jika belum ada)
+    Base.metadata.create_all(bind=engine)
 
     if selected_menu == "Beranda":
         show_home()
